@@ -15,6 +15,8 @@ router = APIRouter(prefix="/api/v1/etl", tags=["ETL"])
     status_code=status.HTTP_201_CREATED,
 )
 def extraer_endpoint(payload: schemas.ExtraerRequest):
+    """Endpoint A: descarga `cantidad` objetos de la API pública y los guarda crudos
+    en MongoDB con upsert por _id (idempotente: reporta nuevos y ya_existentes)."""
     if payload.cantidad <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
