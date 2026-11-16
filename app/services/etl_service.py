@@ -115,3 +115,44 @@ def _aplanar(documentos: list[dict]) -> pd.DataFrame:
     # Seleccionar y renombrar. reindex crea la columna vacía si un personaje no trae el campo
     # (por ejemplo, sin originPlanet).
     return plano.reindex(columns=list(MAPEO_COLUMNAS)).rename(columns=MAPEO_COLUMNAS)
+
+LIMITE_BIGINT = 9_223_372_036_854_775_807
+
+
+def _parsear_ki(valor):
+    """'60.000.000' -> 60000000. Textos como '90 Septillion' o 'unknown' -> None (NULL).
+
+    Si el número no cabe en un BIGINT también devuelve None.
+    """
+    if not isinstance(valor, str):
+        return None
+    texto = valor.strip()
+    if re.fullmatch(r"\d{1,3}(\.\d{3})+|\d+", texto):
+        numero = int(texto.replace(".", ""))
+        return numero if numero <= LIMITE_BIGINT else None
+    return None
+
+
+def _limpiar(df: pd.DataFrame) -> pd.DataFrame:
+    """T (2): nulos, tipos de datos y duplicados."""
+    pk = next(iter(Entidad.__table__.primary_key.columns)).name
+
+    # Texto: nulos y vacíos -> "N/A"
+    for col in COLUMNAS_TEXTO:
+        df[col] = df[col].fillna("N/A").astype(str).str.strip().replace("", "N/A")
+
+    # ki: texto -> entero; lo que no sea número queda NULL
+    df["ki_base"] = df["ki_base"].apply(_parsear_ki).astype("Int64")
+
+    # Numéricos y fechas: se dejan como NULL (no se rellenan con 0 ni con "N/A")
+    for col in COLUMNAS_NUMERICAS:
+        df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
+    for col in COLUMNAS_FECHA:
+        df[col] = pd.to_datetime(df[col], errors="coerce", utc=True).dt.date
+
+    df[pk] = df[pk].astype(ID_TIPO)
+    df = df.drop_duplicates(subset=pk)
+
+    # NaN / NaT / <NA> -> None para que MySQL guarde NULL (y los tipos queden como Python nativos).
+    # planeta_destruido queda True / False / None (None si el personaje no tiene planeta).
+    return df.astype(object).where(df.notna(), None)
