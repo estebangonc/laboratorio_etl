@@ -67,3 +67,7 @@ laboratorio_etl/
 - Base del proyecto: estructura MVC, configuración y conexiones a Mongo/MySQL.
 - `POST /api/v1/etl/extraer` - Descarga de la API y carga idempotente en MongoDB (`_id` = ID original).
 - `DELETE /api/v1/etl/reset` - Limpia Mongo (delete_many) y MySQL (TRUNCATE).
+
+### Dahiana
+- Modelo SQL `Entidad` (tabla plana `personajes_master`, PK explícita igual al `_id` de Mongo, sin autoincremento).
+- `POST /api/v1/etl/transformar`: Lee de MongoDB, aplana y limpia con Pandas (ki a número, N/A en texto, NULL en numéricos y fechas) y carga en MySQL con upsert (idempotente).
