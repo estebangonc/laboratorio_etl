@@ -171,3 +171,13 @@ def _cargar_upsert(db: Session, df: pd.DataFrame) -> int:
         db.execute(stmt)
     db.commit()
     return len(registros)
+
+def ejecutar_pipeline(db: Session) -> dict:
+    """Extract (Mongo) -> Transform (Pandas) -> Load (MySQL)."""
+    Base.metadata.create_all(bind=engine)  # resiliencia: crea la tabla si no existe
+    documentos = _leer_mongo()
+    if not documentos:
+        return {"registros_procesados": 0, "tabla_destino": Entidad.__tablename__}
+    df = _limpiar(_aplanar(documentos))
+    procesados = _cargar_upsert(db, df)
+    return {"registros_procesados": procesados, "tabla_destino": Entidad.__tablename__}
