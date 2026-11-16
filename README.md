@@ -19,7 +19,8 @@ con endpoints de analítica. Bases de Datos (UdeA).
    pip install -r requirements.txt
    ```
 
-3. Copiar `.env.example` como `.env` y completar las credenciales de MySQL y Mongo.
+3. Copiar `.env.example` como `.env` y completar las credenciales de MySQL y Mongo (variables: `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_DB`, `MONGO_URI`, `MONGO_DB`, `MONGO_COLLECTION`). El `.env` no se sube al repositorio.
+
 4. Crear la base `laboratorio_etl` en MySQL (las tablas las crea la app automáticamente):
 
    ```sql
