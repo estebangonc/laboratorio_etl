@@ -4,7 +4,21 @@ from ..database import Base
 
 
 class Entidad(Base):
-    """Tabla plana del Data Warehouse: personajes de la Dragon Ball API."""
+    """Tabla plana del Data Warehouse: personajes de la Dragon Ball API.
+
+    Origen de cada columna (JSON de la API -> columna SQL):
+      id                               -> id_personaje (PK, igual al _id de Mongo)
+      name                             -> nombre (texto libre)
+      race                             -> raza (categórica)
+      gender                           -> genero (categórica)
+      affiliation                      -> afiliacion (categórica)
+      ki ("60.000.000")                -> ki_base (numérica; si no es número -> NULL)
+      maxKi ("90 Septillion")          -> ki_maximo (texto)
+      originPlanet.name                -> planeta_origen (aplanada)
+      originPlanet.isDestroyed         -> planeta_destruido (aplanada, booleana)
+      len(transformations)             -> total_transformaciones (numérica derivada)
+      extraido_en (la agrega /extraer) -> fecha_extraccion (fecha derivada)
+    """
 
     __tablename__ = "personajes_master"
     __table_args__ = {"mysql_charset": "utf8mb4"}
