@@ -1,5 +1,11 @@
-from datetime import datetime
+import re
 import requests
+import pandas as pd
+from sqlalchemy.dialects.mysql import insert as mysql_insert
+from ..config import ID_TIPO
+from ..database import Base, engine, get_mongo_collection
+from ..models.entidad_sql import Entidad
+from datetime import datetime
 from pymongo import UpdateOne
 from ..config import API_URL, ID_CAMPO
 from ..database import get_mongo_collection
@@ -70,3 +76,7 @@ def reset_sistema(db: Session) -> dict:
     db.commit()
     docs = get_mongo_collection().delete_many({}).deleted_count
     return {"mongo_docs_eliminados": docs, "mysql_rows_eliminadas": filas}
+
+def _leer_mongo() -> list[dict]:
+    """E: todos los documentos crudos de la colección raw."""
+    return list(get_mongo_collection().find({}))
