@@ -3,6 +3,8 @@ from fastapi import APIRouter, status
 from ..config import API_NOMBRE
 from ..services import etl_service
 from ..views import schemas
+import requests
+from fastapi import APIRouter, HTTPException, status
 
 router = APIRouter(prefix="/api/v1/etl", tags=["ETL"])
 
@@ -13,7 +15,18 @@ router = APIRouter(prefix="/api/v1/etl", tags=["ETL"])
     status_code=status.HTTP_201_CREATED,
 )
 def extraer_endpoint(payload: schemas.ExtraerRequest):
-    resultado = etl_service.extraer_registros(payload.cantidad)
+    if payload.cantidad <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La cantidad debe ser un entero mayor que 0.",
+        )
+    try:
+        resultado = etl_service.extraer_registros(payload.cantidad)
+    except requests.RequestException as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"No se pudo consultar la API pública: {error}",
+        )
     return {
         "mensaje": "Datos extraídos exitosamente",
         **resultado,
