@@ -11,3 +11,10 @@ class ExtraerResponse(BaseModel):
     ya_existentes: int
     fuente: str
     status: int
+
+class ResetResponse(BaseModel):
+    mensaje: str
+    mongo_docs_eliminados: int
+    mysql_rows_eliminadas: int
+    status: int
+    
