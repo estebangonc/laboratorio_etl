@@ -47,6 +47,8 @@ def reset_endpoint(db: Session = Depends(get_db)):
 
 @router.post("/transformar", response_model=schemas.TransformarResponse)
 def transformar_endpoint(db: Session = Depends(get_db)):
+    """Endpoint B: lee Mongo, aplana y limpia con Pandas y carga en MySQL con upsert por PK
+    (idempotente; la PK de MySQL es el mismo ID que el _id de Mongo)."""
     resultado = etl_service.ejecutar_pipeline(db)
     mensaje = (
         "Pipeline finalizado"
