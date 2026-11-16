@@ -3,6 +3,10 @@ import requests
 from pymongo import UpdateOne
 from ..config import API_URL, ID_CAMPO
 from ..database import get_mongo_collection
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from ..database import Base, engine, get_mongo_collection
+from ..models.entidad_sql import Entidad
 
 LOTE = 20 # personajes por página del listado
 
@@ -57,3 +61,12 @@ def extraer_registros(cantidad: int) -> dict:
         coleccion.bulk_write(operaciones, ordered=False)
 
     return {"nuevos": len(ids) - ya_existentes, "ya_existentes": ya_existentes}
+
+def reset_sistema(db: Session) -> dict:
+    """C: vacía Mongo (delete_many) y MySQL (TRUNCATE, no DROP)."""
+    Base.metadata.create_all(bind=engine) # resiliencia: si la tabla no existe, la crea
+    filas = db.query(Entidad).count()
+    db.execute(text(f"TRUNCATE TABLE {Entidad.__tablename__}"))
+    db.commit()
+    docs = get_mongo_collection().delete_many({}).deleted_count
+    return {"mongo_docs_eliminados": docs, "mysql_rows_eliminadas": filas}
