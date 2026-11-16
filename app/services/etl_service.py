@@ -80,3 +80,38 @@ def reset_sistema(db: Session) -> dict:
 def _leer_mongo() -> list[dict]:
     """E: todos los documentos crudos de la colección raw."""
     return list(get_mongo_collection().find({}))
+
+# ZONA ADAPTABLE (Dragon Ball) ---------------------------------------------------
+# columna del DataFrame aplanado -> columna de la tabla SQL
+MAPEO_COLUMNAS = {
+    "_id": "id_personaje",
+    "name": "nombre",
+    "race": "raza",
+    "gender": "genero",
+    "affiliation": "afiliacion",
+    "ki": "ki_base",  # se convierte a número en _limpiar
+    "maxKi": "ki_maximo",
+    "originPlanet_name": "planeta_origen",
+    "originPlanet_isDestroyed": "planeta_destruido",
+    "total_transformaciones": "total_transformaciones",  # derivada
+    "extraido_en": "fecha_extraccion",  # derivada (la agrega /extraer)
+}
+COLUMNAS_TEXTO = ["nombre", "raza", "genero", "afiliacion", "ki_maximo", "planeta_origen"]
+COLUMNAS_NUMERICAS = ["total_transformaciones"]
+COLUMNAS_FECHA = ["fecha_extraccion"]
+# ---------------------------------------------------------------------------------
+
+
+def _aplanar(documentos: list[dict]) -> pd.DataFrame:
+    """T (1): aplana el JSON anidado, deriva columnas y elimina las irrelevantes."""
+    plano = pd.json_normalize(documentos, sep="_")
+
+    # Derivada: cuántas transformaciones tiene (0 si no tiene lista)
+    transformaciones = plano.get("transformations", pd.Series([None] * len(plano)))
+    plano["total_transformaciones"] = transformaciones.apply(
+        lambda lista: len(lista) if isinstance(lista, list) else 0
+    )
+
+    # Seleccionar y renombrar. reindex crea la columna vacía si un personaje no trae el campo
+    # (por ejemplo, sin originPlanet).
+    return plano.reindex(columns=list(MAPEO_COLUMNAS)).rename(columns=MAPEO_COLUMNAS)
