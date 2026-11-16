@@ -156,3 +156,18 @@ def _limpiar(df: pd.DataFrame) -> pd.DataFrame:
     # NaN / NaT / <NA> -> None para que MySQL guarde NULL (y los tipos queden como Python nativos).
     # planeta_destruido queda True / False / None (None si el personaje no tiene planeta).
     return df.astype(object).where(df.notna(), None)
+
+def _cargar_upsert(db: Session, df: pd.DataFrame) -> int:
+    """L: inserta por lotes con ON DUPLICATE KEY UPDATE (no duplica por PK)."""
+    registros = df.to_dict(orient="records")
+    columnas_actualizables = [c.name for c in Entidad.__table__.columns if not c.primary_key]
+
+    for i in range(0, len(registros), 500):
+        lote = registros[i : i + 500]
+        stmt = mysql_insert(Entidad).values(lote)
+        stmt = stmt.on_duplicate_key_update(
+            {col: stmt.inserted[col] for col in columnas_actualizables}
+        )
+        db.execute(stmt)
+    db.commit()
+    return len(registros)
