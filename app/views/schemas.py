@@ -18,3 +18,8 @@ class ResetResponse(BaseModel):
     mysql_rows_eliminadas: int
     status: int
     
+class TransformarResponse(BaseModel):
+    mensaje: str
+    registros_procesados: int
+    tabla_destino: str
+    status: int
