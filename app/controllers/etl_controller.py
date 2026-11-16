@@ -5,6 +5,7 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
+from fastapi import Depends
 
 
 router = APIRouter(prefix="/api/v1/etl", tags=["ETL"])
@@ -43,3 +44,13 @@ def reset_endpoint(db: Session = Depends(get_db)):
     TRUNCATE (la tabla y su PK permanecen)."""
     resultado = etl_service.reset_sistema(db)
     return {"mensaje": "Sistema reseteado correctamente", **resultado, "status": 200}
+
+@router.post("/transformar", response_model=schemas.TransformarResponse)
+def transformar_endpoint(db: Session = Depends(get_db)):
+    resultado = etl_service.ejecutar_pipeline(db)
+    mensaje = (
+        "Pipeline finalizado"
+        if resultado["registros_procesados"]
+        else "No hay datos en Mongo: ejecuta /extraer primero"
+    )
+    return {"mensaje": mensaje, **resultado, "status": 200}
