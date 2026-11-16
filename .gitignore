@@ -1,0 +1,14 @@
+# Entornos y credenciales
+venv/
+.venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Editores y sistema
+.vscode/
+.idea/
+.DS_Store
