@@ -29,3 +29,31 @@ def descargar_registros(cantidad: int) -> list[dict]:
         registros.append(detalle.json())
 
     return registros
+
+def extraer_registros(cantidad: int) -> dict:
+    """E del ETL: guarda en Mongo la data cruda sin duplicar.
+    El _id del documento es el ID ORIGINAL de la API (PK natural), no un ObjectId.
+    """
+    # Un dict por ID: si la API repitiera un objeto, se cuenta una sola vez
+    unicos = {r[ID_CAMPO]: r for r in descargar_registros(cantidad)}
+    coleccion = get_mongo_collection()
+    ids = list(unicos.keys())
+
+    ya_existentes = coleccion.count_documents({"_id": {"$in": ids}})
+    ahora = datetime.now() # fecha de extracción (hora local)
+
+    operaciones = []
+    for id_original, registro in unicos.items():
+        documento = {k: v for k, v in registro.items() if k != ID_CAMPO}
+        operaciones.append(
+            UpdateOne(
+                {"_id": id_original},
+                {"$set": documento, "$setOnInsert": {"extraido_en": ahora}},
+                upsert=True,
+            )
+        )
+
+    if operaciones:
+        coleccion.bulk_write(operaciones, ordered=False)
+
+    return {"nuevos": len(ids) - ya_existentes, "ya_existentes": ya_existentes}
