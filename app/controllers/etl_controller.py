@@ -39,5 +39,7 @@ def extraer_endpoint(payload: schemas.ExtraerRequest):
 
 @router.delete("/reset", response_model=schemas.ResetResponse)
 def reset_endpoint(db: Session = Depends(get_db)):
+    """Endpoint C: elimina todos los documentos de Mongo y vacía la tabla MySQL con
+    TRUNCATE (la tabla y su PK permanecen)."""
     resultado = etl_service.reset_sistema(db)
     return {"mensaje": "Sistema reseteado correctamente", **resultado, "status": 200}
