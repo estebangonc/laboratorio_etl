@@ -38,6 +38,30 @@ con endpoints de analítica. Bases de Datos (UdeA).
 ## Fuente de datos
 Dragon Ball API (<https://web.dragonball-api.com/>), entidad `characters` (personajes), con el detalle de planeta de origen y transformaciones de cada uno.
 
+## Endpoints
+
+| Método y ruta | Descripción |
+|---|---|
+| `POST /api/v1/etl/extraer` | Descarga de la API y guarda la data cruda en MongoDB (idempotente) |
+| `POST /api/v1/etl/transformar` | Lee Mongo, limpia con Pandas y carga en MySQL (idempotente) |
+| `DELETE /api/v1/etl/reset` | Limpia Mongo (`delete_many`) y MySQL (`TRUNCATE`) |
+| `GET /api/v1/analitica/columna/{nombre}` | Análisis estadístico de una columna con detección dinámica de tipo |
+| `GET /api/v1/analitica/perfil/{id}` | Perfil dual: el mismo registro en Mongo y MySQL |
+
+## Estructura del proyecto
+Patrón MVC + Services:
+
+```
+laboratorio_etl/
+├── .env.example · .gitignore · requirements.txt · README.md
+└── app/
+    ├── main.py · config.py · database.py
+    ├── controllers/   etl_controller.py · analitica_controller.py
+    ├── models/        entidad_sql.py
+    ├── services/      etl_service.py · analitica_service.py
+    └── views/         schemas.py
+```
+
 ## División de responsabilidades
 ### Esteban
 - Base del proyecto: estructura MVC, configuración y conexiones a Mongo/MySQL.
