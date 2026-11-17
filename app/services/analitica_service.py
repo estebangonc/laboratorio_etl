@@ -2,6 +2,7 @@ import pandas as pd
 from sqlalchemy import Boolean, Date, DateTime, Float, Integer, Numeric, select
 from sqlalchemy.orm import Session
 
+from ..database import get_mongo_collection
 from ..models.entidad_sql import Entidad
 
 
@@ -14,6 +15,7 @@ def _leer_serie(db: Session, columna) -> pd.Series:
     """Trae TODOS los valores de una columna (incluidos los NULL) como Serie de Pandas."""
     valores = db.execute(select(columna)).scalars().all()
     return pd.Series(valores, dtype="object")
+
 
 def _detectar_tipo(columna, serie: pd.Series) -> str:
     """Tipo lógico de la columna, deducido del tipo SQLAlchemy y de los datos."""
@@ -32,6 +34,7 @@ def _detectar_tipo(columna, serie: pd.Series) -> str:
     if len(no_nulos) > 0 and no_nulos.nunique() == len(no_nulos):
         return "texto"
     return "categorica"
+
 
 def _num(valor: float):
     """Entero si no tiene decimales; si no, redondeado a 2 decimales."""
@@ -99,3 +102,29 @@ def analizar_columna(db: Session, nombre: str) -> dict | None:
 
     # texto libre
     return {**base, "valores_unicos": int(no_nulos.nunique()), "nulos": nulos}
+
+
+def obtener_perfil(db: Session, id_registro) -> dict | None:
+    """Mismo registro visto desde Mongo (_id) y desde MySQL (PK)."""
+    documento = get_mongo_collection().find_one({"_id": id_registro})
+    fila = db.get(Entidad, id_registro)
+
+    vista_sql = None
+    if fila is not None:
+        vista_sql = {c.name: getattr(fila, c.name) for c in Entidad.__table__.columns}
+
+    if documento is None and fila is None:
+        return None  # no existe en ninguna base -> el controller responde 404
+
+    resultado = {"id": id_registro, "vista_mongo": documento, "vista_sql": vista_sql}
+    if fila is None:
+        resultado["warning"] = (
+            "Registro existe en Mongo pero no en MySQL. Posiblemente no se ha ejecutado "
+            "/transformar o el registro falló en la transformación."
+        )
+    elif documento is None:
+        resultado["warning"] = (
+            "Registro existe en MySQL pero no en Mongo. Posiblemente se limpió Mongo "
+            "o el documento fue eliminado después de transformar."
+        )
+    return resultado

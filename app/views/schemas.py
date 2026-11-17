@@ -30,3 +30,10 @@ class AnalisisColumnaResponse(BaseModel):
     columna: str
     tipo: str
     nulos: int
+
+
+class PerfilDualResponse(BaseModel):
+    id: int | str
+    vista_mongo: dict[str, Any] | None = None
+    vista_sql: dict[str, Any] | None = None
+    warning: str | None = None
