@@ -71,3 +71,7 @@ laboratorio_etl/
 ### Dahiana
 - Modelo SQL `Entidad` (tabla plana `personajes_master`, PK explícita igual al `_id` de Mongo, sin autoincremento).
 - `POST /api/v1/etl/transformar`: Lee de MongoDB, aplana y limpia con Pandas (ki a número, N/A en texto, NULL en numéricos y fechas) y carga en MySQL con upsert (idempotente).
+
+### Alejandro
+- `GET /api/v1/analitica/columna/{nombre}` - Análisis estadístico de una columna con detección dinámica de tipo (categórica, numérica, fecha, booleana y texto).
+- `GET /api/v1/analitica/perfil/{id}` - Perfil dual: el mismo registro en MongoDB y MySQL, con aviso de inconsistencias y 404 si no existe.
