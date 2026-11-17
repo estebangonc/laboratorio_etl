@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api/v1/analitica", tags=["Analítica"])
     response_model_exclude_unset=True,
 )
 def perfil_dual_endpoint(id: ID_TIPO, db: Session = Depends(get_db)):
+    """Endpoint E: devuelve el mismo registro desde MongoDB (_id) y MySQL (PK); si solo existe en una base, avisa con warning; si no existe en ninguna, responde 404."""
     resultado = analitica_service.obtener_perfil(db, id)
     if resultado is None:
         raise HTTPException(
