@@ -23,3 +23,10 @@ class TransformarResponse(BaseModel):
     registros_procesados: int
     tabla_destino: str
     status: int
+
+class AnalisisColumnaResponse(BaseModel):
+    """Campos comunes. Según el tipo se agregan min, max, promedio, distribucion, etc."""
+    model_config = {"extra": "allow"}
+    columna: str
+    tipo: str
+    nulos: int
