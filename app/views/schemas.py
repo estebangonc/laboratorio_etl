@@ -24,6 +24,14 @@ class TransformarResponse(BaseModel):
     tabla_destino: str
     status: int
 
+class AnalisisColumnaResponse(BaseModel):
+    """Campos comunes. Según el tipo se agregan min, max, promedio, distribucion, etc."""
+    model_config = {"extra": "allow"}
+    columna: str
+    tipo: str
+    nulos: int
+
+
 class PerfilDualResponse(BaseModel):
     id: int | str
     vista_mongo: dict[str, Any] | None = None
