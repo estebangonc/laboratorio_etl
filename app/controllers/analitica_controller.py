@@ -10,6 +10,7 @@ router = APIRouter(prefix="/api/v1/analitica", tags=["Analítica"])
 
 @router.get("/columna/{nombre}", response_model=schemas.AnalisisColumnaResponse)
 def analisis_columna_endpoint(nombre: str, db: Session = Depends(get_db)):
+    """Endpoint D: análisis estadístico de una columna con detección dinámica de tipo (categórica, numérica, fecha, booleana o texto)."""
     validas = analitica_service.columnas_validas()
     if nombre not in validas:
         raise HTTPException(
