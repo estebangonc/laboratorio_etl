@@ -23,3 +23,9 @@ class TransformarResponse(BaseModel):
     registros_procesados: int
     tabla_destino: str
     status: int
+
+class PerfilDualResponse(BaseModel):
+    id: int | str
+    vista_mongo: dict[str, Any] | None = None
+    vista_sql: dict[str, Any] | None = None
+    warning: str | None = None
